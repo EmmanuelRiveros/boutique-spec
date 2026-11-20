@@ -1,0 +1,62 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  ## Proyecto
+  Boutique: tienda en línea de ropa y prendas en general. Proyecto escolar
+  cuyo objetivo principal es demostrar el flujo de desarrollo guiado por
+  specs (SDD) con OpenSpec. Se prueba localmente y se despliega solo el día
+  de la entrega como evidencia final.
+
+  ## Stack
+  - Next.js 16 (App Router, carpeta src/), React 19, TypeScript estricto
+  - Tailwind CSS 4 para estilos
+  - Prisma ORM 7 con el adaptador libSQL (@prisma/adapter-libsql):
+    - Local: SQLite en archivo (DATABASE_URL="file:./dev.db")
+    - Entrega: Turso (DATABASE_URL="libsql://..." + DATABASE_AUTH_TOKEN) en Vercel
+  - Cliente de BD único en src/lib/db.ts; cliente generado en src/generated/prisma
+  - Vitest para pruebas (carpeta tests/)
+
+  ## Convenciones
+  - Lógica de negocio en src/lib/<capacidad>/ como funciones puras o que reciben
+    el cliente de BD, para poder probarlas sin la interfaz.
+  - Mutaciones con Server Actions; lectura en Server Components.
+  - Precios en centavos (entero) y moneda MXN; nunca usar float para dinero.
+  - Nombres de código en inglés; textos visibles de la interfaz en español.
+  - Cada cambio de OpenSpec termina en un commit propio (Conventional Commits).
+
+  ## Glosario del dominio
+  - Producto: prenda del catálogo (nombre, descripción, categoría, precio base, imágenes).
+  - Variante: combinación talla + color de un producto; tiene SKU único y su propio stock.
+  - SKU: código único de una variante.
+  - Categoría: agrupación de productos (p. ej. blusas, pantalones, accesorios).
+  - Carrito: selección temporal de variantes y cantidades de un cliente.
+  - Pedido: compra confirmada; estados: pendiente, pagado, enviado, entregado, cancelado.
+  - Administrador: persona del equipo de la tienda que gestiona catálogo y pedidos.
+
+  ## Fuera de alcance (por ahora)
+  - Pagos reales (el pago es simulado)
+  - Envíos con paqueterías reales, facturación electrónica
+
+rules:
+  proposal:
+    - Indicar explícitamente qué queda fuera de alcance
+    - Nombrar las capacidades (specs) que se crean o modifican
+  specs:
+    - Cada requisito MUST tener al menos un escenario WHEN/THEN
+    - Incluir escenarios de error (stock insuficiente, datos inválidos), no solo el caso feliz
+  tasks:
+    - Incluir una tarea de pruebas Vitest por cada escenario de la spec
+    - Tareas pequeñas, de una sesión de trabajo como máximo
+
+operations:
+  apply:
+    guidance:
+      - Escribir primero la prueba del escenario y después el código que la cumple
+      - Ejecutar npm test antes de marcar una tarea como completa
+  archive:
+    guidance:
+      - Antes de archivar, confirmar que npm test y npm run build pasan
