@@ -22,8 +22,8 @@ El contexto del dominio, convenciones y reglas de las specs están en `openspec/
 
 - [x] **Fase 0 — Preparación**: Next.js 16 + TS + Tailwind 4, Prisma 7.10.1 con `@prisma/adapter-libsql`, Vitest, OpenSpec 2.x inicializado (specs en español).
 - [ ] **Fase 1 — Cambios con OpenSpec** (en este orden):
-  1. `catalogo-productos` — productos, categorías, variantes (talla + color, SKU), filtros  ← **siguiente paso**
-  2. `inventario` — stock por variante; no vender sin stock
+  1. [x] `catalogo-productos` — productos, categorías, variantes (talla + color, SKU), filtros. Archivado en `openspec/changes/archive/2026-11-23-catalogo-productos/`; spec viva en `openspec/specs/catalogo-productos/`.
+  2. `inventario` — stock por variante; no vender sin stock  ← **siguiente paso** (agrega el campo `stock` a `Variant`: es un MODIFIED de la spec del catálogo)
   3. `carrito` — agregar/quitar, cantidades, validar stock
   4. `checkout-pedidos` — datos de envío, pago simulado, estados del pedido
   5. `panel-admin` — CRUD de productos y cambio de estado de pedidos
@@ -42,7 +42,8 @@ Actualiza esta lista al terminar cada cambio.
 - Sin Google Fonts (fuentes del sistema) para que el build no dependa de la red.
 - Precios en centavos (entero), moneda MXN.
 - Lógica de negocio en `src/lib/<capacidad>/`, probable sin la interfaz; mutaciones con Server Actions.
-- Pruebas en `tests/`, una por escenario de la spec.
+- Pruebas en `tests/`, una por escenario de la spec. Usan una base aparte (`test.db`) que se recrea en cada corrida (`tests/helpers/global-setup.ts`).
+- **Cache Components está activo**: un `notFound()` al momento de la petición responde 200. Para un 404 real se usa `src/proxy.ts`, que reescribe a una ruta inexistente (ver el design archivado de `catalogo-productos`). El detalle de producto usa `"use cache"` con la etiqueta `catalogo`; quien edite productos debe llamar a `revalidateTag("catalogo")`.
 - El equipo trabaja en Windows (PowerShell).
 
 ## Comandos
@@ -52,7 +53,8 @@ npm install
 npm run dev          # http://localhost:3000
 npm test
 npm run build
-npm run db:migrate   # prisma migrate dev
+npm run db:migrate   # prisma migrate dev (necesita .env; copia .env.example)
+npm run db:seed      # datos de ejemplo del catálogo (se puede repetir)
 openspec list        # cambios en curso
 openspec validate --all
 ```
