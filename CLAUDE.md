@@ -23,7 +23,7 @@ El contexto del dominio, convenciones y reglas de las specs están en `openspec/
 - [x] **Fase 0 — Preparación**: Next.js 16 + TS + Tailwind 4, Prisma 7.10.1 con `@prisma/adapter-libsql`, Vitest, OpenSpec 2.x inicializado (specs en español).
 - [ ] **Fase 1 — Cambios con OpenSpec** (en este orden):
   1. [x] `catalogo-productos` — productos, categorías, variantes (talla + color, SKU), filtros. Archivado en `openspec/changes/archive/2026-11-23-catalogo-productos/`; spec viva en `openspec/specs/catalogo-productos/`.
-  2. `inventario` — stock por variante; no vender sin stock  ← **siguiente paso** (agrega el campo `stock` a `Variant`: es un MODIFIED de la spec del catálogo)
+  2. [~] `inventario` — stock por variante; no vender sin stock. Implementado y verificado localmente; **falta aprobación del equipo y archivar** (`/openspec-archive-change`). Agrega `Variant.stock` (MODIFIED de la spec del catálogo); lógica en `src/lib/inventario/`.
   3. `carrito` — agregar/quitar, cantidades, validar stock
   4. `checkout-pedidos` — datos de envío, pago simulado, estados del pedido
   5. `panel-admin` — CRUD de productos y cambio de estado de pedidos

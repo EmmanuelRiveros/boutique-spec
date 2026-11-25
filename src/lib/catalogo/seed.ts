@@ -11,7 +11,7 @@ type SeedProduct = {
   priceCents: number;
   /** Prefijo del SKU; el SKU final es PREFIJO-TALLA-COLOR. */
   sku: string;
-  variants: [size: string, color: string][];
+  variants: [size: string, color: string, stock: number][];
 };
 
 export const SEED_CATEGORIES = [
@@ -29,7 +29,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "blusas",
     priceCents: 45000,
     sku: "BLU-LIN",
-    variants: [["CH", "Blanco"], ["M", "Blanco"], ["M", "Negro"], ["G", "Negro"]],
+    variants: [["CH", "Blanco", 10], ["M", "Blanco", 8], ["M", "Negro", 6], ["G", "Negro", 0]],
   },
   {
     slug: "blusa-seda-estampada",
@@ -38,7 +38,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "blusas",
     priceCents: 69900,
     sku: "BLU-SED",
-    variants: [["CH", "Rosa"], ["M", "Rosa"], ["G", "Azul"]],
+    variants: [["CH", "Rosa", 5], ["M", "Rosa", 4], ["G", "Azul", 3]],
   },
   {
     slug: "camisa-mezclilla",
@@ -47,7 +47,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "blusas",
     priceCents: 52000,
     sku: "CAM-MEZ",
-    variants: [["M", "Azul"], ["G", "Azul"], ["XG", "Azul"]],
+    variants: [["M", "Azul", 7], ["G", "Azul", 6], ["XG", "Azul", 2]],
   },
   {
     slug: "pantalon-palazzo",
@@ -56,7 +56,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "pantalones",
     priceCents: 58000,
     sku: "PAN-PAL",
-    variants: [["CH", "Negro"], ["M", "Negro"], ["G", "Beige"], ["XG", "Beige"]],
+    variants: [["CH", "Negro", 4], ["M", "Negro", 6], ["G", "Beige", 3], ["XG", "Beige", 2]],
   },
   {
     slug: "jeans-recto",
@@ -65,7 +65,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "pantalones",
     priceCents: 64900,
     sku: "PAN-JEA",
-    variants: [["CH", "Azul"], ["M", "Azul"], ["G", "Azul"], ["G", "Negro"]],
+    variants: [["CH", "Azul", 9], ["M", "Azul", 12], ["G", "Azul", 8], ["G", "Negro", 5]],
   },
   {
     slug: "vestido-midi-lino",
@@ -74,7 +74,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "vestidos",
     priceCents: 89000,
     sku: "VES-MID",
-    variants: [["CH", "Verde"], ["M", "Verde"], ["M", "Blanco"]],
+    variants: [["CH", "Verde", 3], ["M", "Verde", 5], ["M", "Blanco", 1]],
   },
   {
     slug: "vestido-camisero",
@@ -83,7 +83,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "vestidos",
     priceCents: 74500,
     sku: "VES-CAM",
-    variants: [["M", "Azul"], ["G", "Azul"], ["XG", "Negro"]],
+    variants: [["M", "Azul", 6], ["G", "Azul", 4], ["XG", "Negro", 2]],
   },
   {
     slug: "bolsa-tejida",
@@ -92,7 +92,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "accesorios",
     priceCents: 39900,
     sku: "ACC-BOL",
-    variants: [["M", "Beige"], ["M", "Negro"]],
+    variants: [["M", "Beige", 10], ["M", "Negro", 0]],
   },
   {
     slug: "mascada-seda",
@@ -101,7 +101,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: "accesorios",
     priceCents: 25000,
     sku: "ACC-MAS",
-    variants: [["CH", "Rojo"], ["CH", "Azul"]],
+    variants: [["CH", "Rojo", 15], ["CH", "Azul", 12]],
   },
 ];
 
@@ -109,13 +109,15 @@ function imagesFor(slug: string): string[] {
   return [1, 2].map((n) => `https://picsum.photos/seed/${slug}-${n}/600/800`);
 }
 
-function skuFor(prefix: string, size: string, color: string): string {
+export function skuFor(prefix: string, size: string, color: string): string {
   return `${prefix}-${size}-${color.slice(0, 3).toUpperCase()}`;
 }
 
 /**
  * Carga los datos de ejemplo del catálogo. Es idempotente: busca por slug o SKU
  * y solo crea lo que falta; los productos existentes se actualizan.
+ * Las existencias de cada variante se fijan a la cantidad de ejemplo (datos de demostración,
+ * no inventario real).
  */
 export async function seedCatalog(db: CatalogDb) {
   const categoryIds = new Map<string, number>();
@@ -158,10 +160,12 @@ export async function seedCatalog(db: CatalogDb) {
       productId = created.id;
     }
 
-    for (const [size, color] of p.variants) {
+    for (const [size, color, stock] of p.variants) {
       const sku = skuFor(p.sku, size, color);
       const existingVariant = await db.variant.findUnique({ where: { sku } });
-      if (!existingVariant) await createVariant(db, { productId, size, color, sku });
+      if (!existingVariant) await createVariant(db, { productId, size, color, sku, stock });
+      // Las existencias de ejemplo son fijas: se restablecen en cada carga (no se suman).
+      else await db.variant.update({ where: { id: existingVariant.id }, data: { stock } });
     }
   }
 }

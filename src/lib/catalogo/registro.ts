@@ -15,7 +15,14 @@ export type NewProduct = {
   images?: string[];
 };
 
-export type NewVariant = { productId: number; size: string; color: string; sku: string };
+export type NewVariant = {
+  productId: number;
+  size: string;
+  color: string;
+  sku: string;
+  /** Existencias iniciales: entero >= 0. Si se omite, la variante inicia en 0. */
+  stock?: number;
+};
 
 function requireText(value: string, field: string): string {
   const v = value.trim();
@@ -63,9 +70,13 @@ export async function createVariant(db: CatalogDb, input: NewVariant) {
   }
   const color = requireText(input.color, "color").replace(/\s+/g, " ");
   const sku = requireText(input.sku, "SKU");
+  const stock = input.stock ?? 0;
+  if (!Number.isSafeInteger(stock) || stock < 0) {
+    throw new CatalogError("Las existencias deben ser un número entero mayor o igual a cero.");
+  }
   try {
     return await db.variant.create({
-      data: { productId: input.productId, size: input.size, color, colorKey: toColorKey(color), sku },
+      data: { productId: input.productId, size: input.size, color, colorKey: toColorKey(color), sku, stock },
     });
   } catch (e) {
     if (isUniqueViolation(e)) {

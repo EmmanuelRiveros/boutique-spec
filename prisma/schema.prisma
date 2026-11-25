@@ -13,6 +13,7 @@ datasource db {
 }
 
 // --- Catálogo (cambio OpenSpec: catalogo-productos) ---
+// --- Existencias: Variant.stock (cambio OpenSpec: inventario) ---
 
 enum Size {
   CH
@@ -52,6 +53,7 @@ model Variant {
   color     String
   colorKey  String
   sku       String  @unique
+  stock     Int     @default(0)
 
   @@unique([productId, size, colorKey])
   @@index([colorKey])
